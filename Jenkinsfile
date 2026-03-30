@@ -8,7 +8,7 @@ pipeline {
         DOMAIN_HOME = '/home/shanmukha/Oracle/Middleware/Oracle_Home/user_projects/domains/base_domain'
         APP_NAME = 'login-app'
         WAR_FILE = "${WORKSPACE}/target/login-app.war"
-        WL_ADMIN_URL = 'http://localhost:7001'
+        WL_ADMIN_URL = 'http://127.0.0.1:7001'
         WL_USER = 'weblogic'
         WL_PASSWORD = 'Shan@1998'
         WL_TARGET = 'MS1'
