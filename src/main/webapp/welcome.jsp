@@ -13,7 +13,7 @@
 </head>
 <body>
   <div class="box">
-    <h2>✅ Welcome, ${username}! &#10003;</h2>
+    <h2> Welcome, ${username}!</h2>
     <p>You have successfully logged in to the DevOps Portal.</p>
   </div>
 </body>
