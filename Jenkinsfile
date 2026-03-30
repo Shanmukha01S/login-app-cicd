@@ -19,16 +19,34 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                echo '========== Pulling code from GitHub =========='
+                echo '========== Pulling Code from GitHub =========='
                 checkout scm
+                echo "Branch: ${env.GIT_BRANCH}"
+                echo "Commit: ${env.GIT_COMMIT}"
             }
         }
 
-        stage('Build') {
+        stage('Maven Compile') {
             steps {
-                echo '========== Building WAR with Maven =========='
-                sh 'mvn clean package'
-                echo 'Build completed successfully!'
+                echo '========== Compiling Source Code =========='
+                sh 'mvn compile'
+                echo 'Compilation successful!'
+            }
+        }
+
+        stage('Maven Test') {
+            steps {
+                echo '========== Running Unit Tests =========='
+                sh 'mvn test'
+                echo 'Tests passed!'
+            }
+        }
+
+        stage('Maven Package') {
+            steps {
+                echo '========== Packaging WAR file =========='
+                sh 'mvn package -DskipTests'
+                echo 'WAR file created successfully!'
             }
         }
 
@@ -36,6 +54,7 @@ pipeline {
             steps {
                 echo '========== Verifying WAR file =========='
                 sh 'ls -lh target/login-app.war'
+                sh 'echo "WAR size: $(du -sh target/login-app.war | cut -f1)"'
             }
         }
 
@@ -64,6 +83,7 @@ pipeline {
                     -targets ${WL_TARGET} \
                     ${WAR_FILE}
                 """
+                echo 'Deployment completed!'
             }
         }
 
@@ -75,9 +95,10 @@ pipeline {
                     STATUS=\$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${WL_PORT}/${APP_NAME}/)
                     echo "HTTP Status: \$STATUS"
                     if [ "\$STATUS" = "200" ] || [ "\$STATUS" = "302" ]; then
-                        echo "✅ Application is UP and running!"
+                        echo "Application is UP and running!"
+                        echo "URL: http://localhost:${WL_PORT}/${APP_NAME}/"
                     else
-                        echo "❌ Application health check failed! Status: \$STATUS"
+                        echo "Application health check failed! Status: \$STATUS"
                         exit 1
                     fi
                 """
@@ -89,13 +110,18 @@ pipeline {
     post {
         success {
             echo '=========================================='
-            echo '✅ PIPELINE SUCCESS - App deployed!'
+            echo 'PIPELINE SUCCESS'
+            echo "App deployed at: http://localhost:${WL_PORT}/${APP_NAME}/"
             echo '=========================================='
         }
         failure {
             echo '=========================================='
-            echo '❌ PIPELINE FAILED - Check logs above!'
+            echo 'PIPELINE FAILED - Check logs above!'
             echo '=========================================='
+        }
+        always {
+            echo "Pipeline finished at: ${new Date()}"
+            echo "Job: ${env.JOB_NAME} | Build: ${env.BUILD_NUMBER}"
         }
     }
 }
